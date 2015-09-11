@@ -71,6 +71,10 @@ class Row:
     def __init__(self):
         self.nodeList = []
 
+    def __init__(self, size):
+        self.nodeList = []
+        self.Initialize(size)
+
     def addNode(self, node):
         self.nodeList.append(node)
 
@@ -88,6 +92,13 @@ class Row:
             self.nodeList[i].setInputs(inputList)
         return 0
 
+    def setWeightLists(self, weightLists):
+        if (len(weightLists) != len(self.nodeList)):
+            return -1
+        for i, weightList in enumerate(weightLists):
+            self.nodeList[i].setWeights(weightList)
+        return 0
+
     def updateNodes(self):
         for node in self.nodeList:
             node.updateSignal()
@@ -96,14 +107,14 @@ class Row:
         if (len(errorList) != len(self.nodeList)):
             return -1
         for i, error in enumerate(errorList):
-            self.nodeList[i].updateWeights(errorList)
+            self.nodeList[i].updateWeights(error)
         return 0
 
     def setSignalList(self, signalList):
         if (len(signalList) != len(self.nodeList)):
             return -1
         for i, signal in enumerate(signalList):
-            self.nodeList[i].setSignal(signalList)
+            self.nodeList[i].setSignal(signal)
         return 0
 
     def setEpsilonList(self, epsilonList):
@@ -148,9 +159,70 @@ class Row:
         return len(self.nodeList)
 
 
-r = Row()
-r.Initialize(4)
-print(r.getEpsilonList())
-r.setEpsilonList([1,2,3])
-print(r.getEpsilonList())
-r.setSignalList([0,4,1,2])
+class RowNet:
+    def __init__(self,x,y):
+        self.rowNum = x
+        self.rowList = []
+        for i in range(0,x):
+            self.rowList.append(Row(y))
+        #try to get the outputs of i to be the inputs of i + 1
+        self.mapInputs()
+
+    def mapInputs(self):
+        inputs = []
+        for row in self.rowList:
+            self.mapRowInputs(row, inputs)
+            inputs = row.getSignalList()
+
+    def mapRowInputs(self, row, inputs):
+        row.setInputLists(inputs * row.getSize())
+
+    def addRow(self, row):
+        self.rowList.append(row)
+        self.mapInputs()
+        self.rowNum += 1
+
+    def delRow(self, row):
+        if (row >= 0 and row < self.rowNum):
+            self.rowList.remove(row)
+            self.mapInputs()
+            self.rowNum -= 1
+            return 0
+        return -1
+
+    def initializeWeights(self):
+        weights = [0] * self.getRow(0).getSize()
+        for row in self.rowList:
+            row.setWeightLists(weights * row.getSize())
+            weights = [0.5]*row.getSize()
+
+    def getRow(self, i):
+        if i >= len(self.rowList):
+            return -1
+        return self.rowList[i]
+
+    def getRowSignals(self, i):
+        return self.getRow(i).getSignalList()
+    def getInputs(self):
+        return self.getRowSignals(0)
+    def getOutputs(self):
+        return self.getRowSignals(self.rowNum - 1)
+    def setRowSignals(self, i, signalList):
+        self.getRow(i).setSignalList(signalList)
+    def setInputs(self, signalList):
+        self.setRowSignals(0, signalList)
+    def setOutputs(self, signalList):
+        self.setRowSignals(self.rowNum - 1, signalList)
+
+    def printRowSignals(self, row):
+        print(self.getRowSignals(row))
+    def printSignals(self):
+        for i, row in enumerate(self.rowList):
+            self.printRowSignals(i)
+            
+
+net = RowNet(3,4)
+net.printSignals()
+net.setInputs([4,3,2,1])
+net.initializeWeights()
+net.printSignals()
