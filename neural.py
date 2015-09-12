@@ -5,6 +5,7 @@
 #   3. Nets
 #       A list of rows
 
+
 class Node:
     def __init__(self):
         self.signal = 0
@@ -18,9 +19,10 @@ class Node:
     def setInputs(self, inputs):
         self.inputs = inputs
         if (len(inputs) != len(self.weights)):
-            self.setWeights ([0]*len(weights))
+            self.setWeights ([0]*len(inputs))
+
     
-    def setInputs(self, inputs, weights):
+    def setInputsAndWeights(self, inputs, weights):
         if (len(inputs) != len(weights)):
             return -1
         self.inputs = inputs
@@ -35,8 +37,8 @@ class Node:
 
     def updateSignal(self):
         tmp = 0
-        for inpt in self.inputs:
-            tmp += inpt[0]*inpt[1]
+        for pair in zip(self.inputs,self.weights):
+            tmp += pair[0]*pair[1]
 
         if tmp >= self.threshold:
             self.setSignal(1)
@@ -60,7 +62,7 @@ class Node:
     def getInputs(self):
         return self.inputs
     def getWeights(self):
-        return self.Weights
+        return self.weights
     def getThreshold(self):
         return self.threshold
     def getEpsilon(self):
@@ -143,6 +145,12 @@ class Row:
             ret.append(node.getInputs())
         return ret
 
+    def getWeightLists(self):
+        ret = []
+        for node in self.nodeList:
+            ret.append(node.getWeights())
+        return ret
+
     def getThresholdList(self):
         ret = []
         for node in self.nodeList:
@@ -175,7 +183,7 @@ class RowNet:
             inputs = row.getSignalList()
 
     def mapRowInputs(self, row, inputs):
-        row.setInputLists(inputs * row.getSize())
+        row.setInputLists([inputs] * row.getSize())
 
     def addRow(self, row):
         self.rowList.append(row)
@@ -191,10 +199,18 @@ class RowNet:
         return -1
 
     def initializeWeights(self):
-        weights = [0] * self.getRow(0).getSize()
+        numInputs = 0
         for row in self.rowList:
-            row.setWeightLists(weights * row.getSize())
-            weights = [0.5]*row.getSize()
+            row.setWeightLists([[0.5] * numInputs] * row.getSize())
+            numInputs = row.getSize()
+
+    def propagateSignals(self):
+        signalList = self.getInputs()
+        for row in self.rowList[1:]:
+            self.mapRowInputs(row, signalList)
+            row.updateNodes()
+            singalList = row.getSignalList()
+        
 
     def getRow(self, i):
         if i >= len(self.rowList):
@@ -221,8 +237,9 @@ class RowNet:
             self.printRowSignals(i)
             
 
-net = RowNet(3,4)
-net.printSignals()
-net.setInputs([4,3,2,1])
+net = RowNet(2,4)
+net.setInputs([0,0,0,1])
 net.initializeWeights()
+net.propagateSignals()
 net.printSignals()
+
