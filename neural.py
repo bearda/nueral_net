@@ -12,7 +12,7 @@ class Node:
         self.inputs = []
         self.weights= []
         self.threshold = 1
-        self.epsilon = 0
+        self.epsilon = 0.4
         
 
     
@@ -46,9 +46,15 @@ class Node:
             self.setSignal(0)
 
     def updateWeights(self, error):
+        print("start of update weights!")
         self.threshold -= self.epsilon*error
+        print(self.threshold)
         for i, weight in enumerate(self.weights):
-            weight += error*self.inputs[i]*self.epsilon
+            print(self.weights[i])
+            print(error)
+            self.weights[i] += error*self.inputs[i]*self.epsilon
+            print(self.weights[i])
+        print("end of update weights!")
 
     def setEpsilon(self, e):
         self.epsilon = e
@@ -105,11 +111,14 @@ class Row:
         for node in self.nodeList:
             node.updateSignal()
 
-    def updateWeights(self, errorList):
+    def updateWeightLists(self, errorList):
+        print ("update start")
         if (len(errorList) != len(self.nodeList)):
             return -1
+            print ("update exit")
         for i, error in enumerate(errorList):
             self.nodeList[i].updateWeights(error)
+        print ("update end")
         return 0
 
     def setSignalList(self, signalList):
@@ -210,7 +219,7 @@ class RowNet:
             self.mapRowInputs(row, signalList)
             row.updateNodes()
             singalList = row.getSignalList()
-        
+
 
     def getRow(self, i):
         if i >= len(self.rowList):
@@ -238,8 +247,22 @@ class RowNet:
             
 
 net = RowNet(2,4)
-net.setInputs([0,0,0,1])
+net.setInputs([3,2,1,1])
 net.initializeWeights()
 net.propagateSignals()
-net.printSignals()
 
+node = Node()
+node.setInputs([1])
+node.setWeights([1])
+keepGoing = 1
+while keepGoing:
+    node.updateSignal()
+    print("the signal is: ", node.getSignal())
+    print("the weight is: ", node.getWeights())
+    raw_input("Done looking?")
+    error = (1 - node.getInputs()[0]) - node.getSignal()
+    print ("the error is: ", error)
+    node.updateWeights( error)
+    signal = int(raw_input("Next input? "))
+    node.setInputs([signal])
+    
