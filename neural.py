@@ -244,23 +244,24 @@ class RowNet:
             self.printRowSignals(i)
             
 
-net = RowNet(2,4)
-net.setInputs([3,2,1,1])
-net.initializeWeights()
-net.propagateSignals()
+if __name__ == "__main__":
+    net = RowNet(2,4)
+    net.setInputs([3,2,1,1])
+    net.initializeWeights()
+    net.propagateSignals()
 
-node = Node()
-node.setInputs([1])
-node.setWeights([1])
-keepGoing = 1
-while keepGoing:
-    node.updateSignal()
-    print("the signal is: ", node.getSignal())
-    print("the weight is: ", node.getWeights())
-    raw_input("Done looking?")
-    error = (1 - node.getInputs()[0]) - node.getSignal()
-    print ("the error is: ", error)
-    node.updateWeights( error)
-    signal = int(raw_input("Next input? "))
-    node.setInputs([signal])
-    
+    node = Node()
+    node.setInputs([1])
+    node.setWeights([1])
+    keepGoing = 1
+    while keepGoing:
+        node.updateSignal()
+        print("the signal is: ", node.getSignal())
+        print("the weight is: ", node.getWeights())
+        raw_input("Done looking?")
+        error = (1 - node.getInputs()[0]) - node.getSignal()
+        print ("the error is: ", error)
+        node.updateWeights( error)
+        signal = int(raw_input("Next input? "))
+        node.setInputs([signal])
+        
