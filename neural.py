@@ -36,14 +36,12 @@ class Node:
         return 0
 
     def updateSignal(self):
-        tmp = 0
+        signal = 0
         for pair in zip(self.inputs,self.weights):
-            tmp += pair[0]*pair[1]
+            signal += pair[0]*pair[1]
 
-        if tmp >= self.threshold:
-            self.setSignal(1)
-        else:
-            self.setSignal(0)
+        self.setSignal(signal)
+
 
     def updateWeights(self, error):
         print("start of update weights!")
